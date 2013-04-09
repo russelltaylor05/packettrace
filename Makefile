@@ -6,7 +6,7 @@
 #  in your ~/.mybashrc file should do the trick
 
 CC = gcc
-CFLAGS = -g -Wall -Werror
+CFLAGS = -g -Wall
 OS = $(shell uname -s)
 PROC = $(shell uname -p)
 EXEC_SUFFIX=$(OS)-$(PROC)
@@ -27,10 +27,19 @@ else
 endif
 endif
 
-all:  trace-$(EXEC_SUFFIX)
+all:  trace
 
-trace-$(EXEC_SUFFIX): trace.c
+trace: trace.c
 	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -lpcap -o $@ trace.c checksum.c
 
+test: trace
+	./trace pcap/smallTCP.pcap
+
+test2: trace
+	./trace pcap/ArpTest.pcap
+
+
+
+
 clean:
-	rm -f trace-*
+	rm -f trace
