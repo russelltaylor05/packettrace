@@ -66,7 +66,6 @@ typedef struct tcp_struct {
 	u_short window_size;
 	u_short checksum;
 	u_short urgent_pointer;
-	
 } TCP;
 
 typedef struct tcp_pseudo_struct {
@@ -77,10 +76,26 @@ typedef struct tcp_pseudo_struct {
   u_int16_t tcplen;
 } TCP_PSEUDO;
 
+typedef struct udp_struct{
+    u_short sport;
+    u_short dport;
+    u_short len;
+    u_short crc;
+} UDP;
+
+typedef struct icmp_struct{
+    u_char type;
+    u_char code;
+    u_short checksum;
+} ICMP;
+
+
 void printEthernet(ETHERNET *ethernet);
 void printIP(IP *ip);
 void printTCP(TCP *tcp, IP *ip, const u_char* packet);
 void printARP(ARP *arp);
+void printUDP(UDP *udp);
+void printICMP(ICMP *icmp);
 
 
 void handle_packet(const struct pcap_pkthdr *header, const u_char *pkt_data);

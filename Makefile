@@ -36,7 +36,7 @@ test: trace
 	./trace pcap/smallTCP.pcap
 
 test2: trace
-	./trace pcap/ArpTest.pcap
+	./trace pcap/PingTest.pcap
 
 test3: trace
 	./trace pcap/ArpTest.pcap > output/out2.out
@@ -45,6 +45,20 @@ test3: trace
 test4: trace
 	./trace pcap/smallTCP.pcap > output/out1.out
 	diff -w pcap/smallTCP.out.txt output/out1.out
+
+test5: trace
+	./trace pcap/TCP_bad_checksum.pcap > output/out1.out
+	diff -w pcap/TCP_bad_checksum.out.txt output/out1.out
+
+test6: trace
+	./trace pcap/UDPfile.pcap > output/out1.out
+	diff -w pcap/UDPfile.out.txt output/out1.out
+
+
+test7: trace
+	./trace pcap/PingTest.pcap > output/out1.out
+	diff -w pcap/PingTest.out.txt output/out1.out
+
 
 
 

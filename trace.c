@@ -29,9 +29,7 @@ int main(int argc, char *argv[])
   if ( (fp = pcap_open_offline(argv[1], errbuf) ) == NULL) {
     fprintf(stderr,"\nError opening dump file\n");
     return -1;
-  }  
-  
-  //pcap_loop(fp, 0, dispatcher_handler, NULL);  
+  }
   
   result = pcap_next_ex(fp, &header, &packet);
   while (result > -1) {
@@ -50,16 +48,14 @@ int main(int argc, char *argv[])
 
 void handle_packet(const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
-
   ETHERNET *ethernet;
   IP *ip;
   TCP *tcp;
   ARP *arp;
+  UDP *udp;
+  ICMP *icmp;
   u_int size_ip = 0;
   u_short ether_type;
-  
-  
-  //printf("%ld:%ld (%ld)\n", header->ts.tv_sec, header->ts.tv_usec, header->len);
     
 	ethernet = (ETHERNET*)(pkt_data);
 	ether_type = ntohs(ethernet->type);
@@ -67,19 +63,35 @@ void handle_packet(const struct pcap_pkthdr *header, const u_char *pkt_data)
 	
 	if(ether_type == ETHERTYPE_ARP) {
   	arp = (ARP*)(pkt_data + 14); 
-  	printARP(arp);  	
+  	printARP(arp);
 
 	} else {
   	
   	ip = (IP*)(pkt_data + SIZE_ETHERNET);
   	printIP(ip);
   	size_ip = (ip->ip_vhl & 0x0f) * 4;
-  	
-  	tcp = (TCP*)(pkt_data + SIZE_ETHERNET + size_ip);
-  	printTCP(tcp, ip, pkt_data);
-  	  	
-	}        
-    
+
+  	switch(ip->protocol) {
+  		case IPPROTO_TCP:
+      	tcp = (TCP*)(pkt_data + SIZE_ETHERNET + size_ip);
+      	printTCP(tcp, ip, pkt_data);
+  			break;
+  		case IPPROTO_UDP:
+      	udp = (UDP*)(pkt_data + SIZE_ETHERNET + size_ip);
+      	printUDP(udp);
+  			break;
+  		case IPPROTO_ICMP:
+      	icmp = (ICMP*)(pkt_data + SIZE_ETHERNET + size_ip);
+      	printICMP(icmp);
+  			return;
+  		case IPPROTO_IP:
+  			printf("\t\tProtocol: IP\n");
+  			break;
+  		default:
+  			printf("\t\tProtocol: unknown\n");
+  			break;
+  	}
+	}
 }
 
 
@@ -184,16 +196,16 @@ void printIP(IP *ip)
 			break;
 		case IPPROTO_UDP:
 			printf("\t\tProtocol: UDP\n");
-			return;
+			break;
 		case IPPROTO_ICMP:
 			printf("\t\tProtocol: ICMP\n");
-			return;
+			break;
 		case IPPROTO_IP:
 			printf("\t\tProtocol: IP\n");
-			return;
+			break;
 		default:
 			printf("\t\tProtocol: unknown\n");
-			return;
+			break;
 	}  
   if(!checksum_result) {
     printf("\t\tChecksum: Correct (0x%x)\n", ntohs(ip->check));  
@@ -203,6 +215,22 @@ void printIP(IP *ip)
   printf("\t\tSender IP: %s\n", inet_ntoa(*(struct in_addr *)&(ip->saddr)));
   printf("\t\tDest  IP : %s\n", inet_ntoa(*(struct in_addr *)&(ip->daddr)));
   printf("\n");
+}
+
+void printUDP(UDP *udp) 
+{
+  printf("\tUDP Header\n");
+  printf("\t\tSource Port: %d\n", ntohs(udp->sport));
+  printf("\t\tDest Port: %d\n", ntohs(udp->dport));
+  printf("\n");	
+}
+
+void printICMP(ICMP *icmp) 
+{
+  printf("\tICMP Header\n");
+  printf("\t\tType: %d\n", icmp->type);
+  printf("\n");	
+
 }
 
 
