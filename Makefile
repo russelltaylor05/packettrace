@@ -36,10 +36,10 @@ test: trace
 	./trace pcap/smallTCP.pcap
 
 test2: trace
-	./trace pcap/ArpTest.pcap
+	./trace pcap/ArpTest.pcap > output/out2.out
 
 
 
 
 clean:
-	rm -f trace
+	rm -f trace output/*.out
