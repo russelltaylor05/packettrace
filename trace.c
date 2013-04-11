@@ -228,9 +228,12 @@ void printUDP(UDP *udp)
 void printICMP(ICMP *icmp) 
 {
   printf("\tICMP Header\n");
-  printf("\t\tType: %d\n", icmp->type);
+  if(!icmp->type) {
+    printf("\t\tType: Reply\n");
+  } else {
+    printf("\t\tType: Request\n");
+  }
   printf("\n");	
-
 }
 
 

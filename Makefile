@@ -54,10 +54,13 @@ test6: trace
 	./trace pcap/UDPfile.pcap > output/out1.out
 	diff -w pcap/UDPfile.out.txt output/out1.out
 
-
 test7: trace
 	./trace pcap/PingTest.pcap > output/out1.out
 	diff -w pcap/PingTest.out.txt output/out1.out
+
+test8: trace
+	./trace pcap/largeMix2.pcap > output/out1.out
+	diff -w pcap/largeMix2.out.txt output/out1.out
 
 
 
