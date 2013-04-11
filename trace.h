@@ -61,11 +61,11 @@ typedef struct tcp_struct {
   u_short dest_port;
   u_int32_t th_seq;
   u_int32_t th_ack;
-  u_char offset;	/* data offset, rsvd */
+  u_char offset;	
 	u_char flags;
-	u_short window_size;		/* window */
-	u_short checksum;		/* checksum */
-	u_short urgent_pointer;		/* urgent pointer */
+	u_short window_size;
+	u_short checksum;
+	u_short urgent_pointer;
 	
 } TCP;
 
@@ -79,7 +79,7 @@ typedef struct tcp_pseudo_struct {
 
 void printEthernet(ETHERNET *ethernet);
 void printIP(IP *ip);
-void printTCP(TCP *tcp, IP *ip);
+void printTCP(TCP *tcp, IP *ip, const u_char* packet);
 void printARP(ARP *arp);
 
 

@@ -42,6 +42,9 @@ test3: trace
 	./trace pcap/ArpTest.pcap > output/out2.out
 	diff -w pcap/ArpTest.out.txt output/out2.out
 
+test4: trace
+	./trace pcap/smallTCP.pcap > output/out1.out
+	diff -w pcap/smallTCP.out.txt output/out1.out
 
 
 

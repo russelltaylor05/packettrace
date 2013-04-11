@@ -39,7 +39,6 @@ int main(int argc, char *argv[])
     handle_packet(header, packet);    
     result = pcap_next_ex(fp, &header, &packet);
     cnt++;
-    result = -1;
   }
   if(result == -1) {
     pcap_geterr(fp);    
@@ -77,39 +76,50 @@ void handle_packet(const struct pcap_pkthdr *header, const u_char *pkt_data)
   	size_ip = (ip->ip_vhl & 0x0f) * 4;
   	
   	tcp = (TCP*)(pkt_data + SIZE_ETHERNET + size_ip);
-  	printTCP(tcp, ip);
+  	printTCP(tcp, ip, pkt_data);
   	  	
 	}        
-  printf("\n");
     
 }
 
 
 
-void printTCP(TCP *tcp, IP *ip) 
+void printTCP(TCP *tcp, IP *ip, const u_char* packet) 
 {
 
   TCP_PSEUDO pseudo;
-	int checksum_size, checksum_result;
-	char tcpcsumblock[ sizeof(TCP_PSEUDO) + TCPSYN_LEN ];
+	int checksum_result;
+
+	int ip_total_length = ntohs(ip->tot_len);
+	int size_ip = (ip->ip_vhl & 0x0f) * 4;
+	int tcp_size = ip_total_length - size_ip;
+	int check_block_size = tcp_size + sizeof(TCP_PSEUDO);
+	char check_block[check_block_size];
   
-  /* Fill the pseudoheader so we can compute the TCP checksum*/
   pseudo.src = ip->saddr;
   pseudo.dst = ip->daddr;
   pseudo.zero = 0;
   pseudo.protocol = ip->protocol;
-  pseudo.tcplen = htons( sizeof(TCP) );
+  pseudo.tcplen = htons(tcp_size);
+  
+  /*
+  printf("ip_total_len: \t\t%d \n", ip_total_length);
+  printf("size_ip: \t\t%d\n", size_ip);
+  printf("pseudo_header_size: \t%d\n", sizeof(TCP_PSEUDO));
+  printf("tcp_len: \t\t%d\n", tcp_size);
+  printf("check_block_size: \t%d\n ",  check_block_size);
+  */
 
-  memcpy(tcpcsumblock, &pseudo, sizeof(TCP_PSEUDO));   
-  memcpy(tcpcsumblock + sizeof(TCP_PSEUDO),tcp, sizeof(TCP));
+  memcpy(check_block, &pseudo, sizeof(TCP_PSEUDO));   
+  memcpy(check_block + sizeof(TCP_PSEUDO), packet + SIZE_ETHERNET + size_ip, tcp_size);
 
-  checksum_result = in_cksum((unsigned short *)(tcpcsumblock), sizeof(tcpcsumblock));
+  checksum_result = in_cksum((unsigned short *)(check_block), check_block_size);
 
   printf("\tTCP Header\n");
   printf("\t\tSource Port:  %d\n", ntohs(tcp->source_port));
   printf("\t\tDest Port:  %d\n", ntohs(tcp->dest_port));
-  printf("\t\tSequence Number: %d\n", ntohl(tcp->th_seq));
-  printf("\t\tACK Number: %d\n", ntohl(tcp->th_ack));
+  printf("\t\tSequence Number: %u\n", ntohl(tcp->th_seq));
+  printf("\t\tACK Number: %u\n", ntohl(tcp->th_ack));
   printf("\t\tSYN Flag: ");
   if(tcp->flags & FLAG_SYN) {
     printf("Yes\n");    
@@ -129,7 +139,12 @@ void printTCP(TCP *tcp, IP *ip)
     printf("No\n");
   }
   printf("\t\tWindow Size: %d\n", ntohs(tcp->window_size));
-  printf("\t\tChecksum: %d\n", checksum_result);
+  if(!checksum_result) {
+    printf("\t\tChecksum: Correct (0x%x)\n", ntohs(tcp->checksum));  
+  } else {
+    printf("\t\tChecksum: Incorrect (0x%x)\n", ntohs(tcp->checksum));
+  }
+
   
   
 }
