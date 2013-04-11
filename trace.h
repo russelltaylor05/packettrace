@@ -7,9 +7,14 @@
 //#define ETHER_ADDR_LEN	6
 #define SIZE_ETHERNET 14
 #define LINE_LEN 16
+#define TCPSYN_LEN 20
 
 #define ARP_REQUEST 1
 #define ARP_REPLY 2 
+
+#define FLAG_FIN 0x01
+#define FLAG_SYN 0x02
+#define FLAG_RST 0x04
 
 #define IP_HL(ip)		(((ip)->ip_vhl) & 0x0f)
 
@@ -50,21 +55,35 @@ typedef struct arp_struct {
   u_char rec_ip[4];
 } ARP; 
 
+#pragma pack(1)
 typedef struct tcp_struct {
-  u_int16_t source_port;
-  u_int16_t dest_port;
+  u_short source_port;
+  u_short dest_port;
   u_int32_t th_seq;
   u_int32_t th_ack;
+  u_char offset;	/* data offset, rsvd */
+	u_char flags;
+	u_short window_size;		/* window */
+	u_short checksum;		/* checksum */
+	u_short urgent_pointer;		/* urgent pointer */
+	
 } TCP;
+
+typedef struct tcp_pseudo_struct {
+  u_int32_t src;
+  u_int32_t dst;
+  u_char zero;
+  u_char protocol;
+  u_int16_t tcplen;
+} TCP_PSEUDO;
 
 void printEthernet(ETHERNET *ethernet);
 void printIP(IP *ip);
-void printTCP(TCP *tcp);
+void printTCP(TCP *tcp, IP *ip);
 void printARP(ARP *arp);
 
 
 void handle_packet(const struct pcap_pkthdr *header, const u_char *pkt_data);
 
-void dispatcher_handler(u_char *temp1, const struct pcap_pkthdr *header, const u_char *pkt_data);
 
 #endif
